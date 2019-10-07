@@ -78,7 +78,7 @@ public class Board : MonoBehaviour
 
     public Vector3 GetMouseCoordinates()
     {
-        Debug.Log(Input.mousePosition);
+        //Debug.Log(Input.mousePosition);
         Vector3 position = Camera.main.ScreenToWorldPoint(Input.mousePosition);
 
         //position.x = Mathf.RoundToInt((position.x - BottomLeftCorner.x)/ Intervals.x);

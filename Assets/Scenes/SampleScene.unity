@@ -885,3 +885,5 @@ MonoBehaviour:
   Destination: {x: 0, y: 0}
   PathMarker: {fileID: 8116061413419221800, guid: 2f53750906a6c094e8a3f61a6c3b9420,
     type: 3}
+  BlockMarker: {fileID: 8700696640066289483, guid: c7d211cb55b43cf4190d070d8dbe9604,
+    type: 3}

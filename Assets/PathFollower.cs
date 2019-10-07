@@ -10,12 +10,35 @@ public class PathFollower : MonoBehaviour
     public Vector2Int Destination;
 
     public GameObject PathMarker;
+    public GameObject BlockMarker;
 
-    List<GameObject> PathMarks; 
+    List<GameObject> PathMarks;
+
+    public bool[,] Obstacles;
+    public GameObject[,] ObstacleObjects;
+
+    public static Vector2Int[] directions;
 
     // Start is called before the first frame update
     void Start()
     {
+        //if (directions != null)
+        //{
+            directions = new Vector2Int[] {
+                new Vector2Int( 1, 0),
+                new Vector2Int( 1,-1),
+                new Vector2Int( 0,-1),
+                new Vector2Int(-1,-1),
+                new Vector2Int(-1, 0),
+                new Vector2Int(-1, 1),
+                new Vector2Int( 0, 1),
+                new Vector2Int( 1, 1)
+            };
+
+            Obstacles = new bool[board.Dimensions.x, board.Dimensions.y];
+            ObstacleObjects = new GameObject[board.Dimensions.x, board.Dimensions.y];
+        //}
+
         PathMarks = new List<GameObject>();
     }
 
@@ -35,7 +58,7 @@ public class PathFollower : MonoBehaviour
             //List<Vector2Int> spots = CreatePath(Destination, Location);
             List<Vector2Int> spots = new List<Vector2Int>();
 
-            List<PathRay> steps = CreatePath2(Location, Destination);
+            List<PathRay> steps = CreatePath2(Destination, Location);
             Stack<Vector2Int> tmp = new Stack<Vector2Int>();
             
             foreach(PathRay step in steps)
@@ -60,14 +83,31 @@ public class PathFollower : MonoBehaviour
                 PathMarks.Add(Instantiate(PathMarker, board.ConvertToWorldCoordinates(spots[i]) + new Vector3(0, 2, 0), Quaternion.identity));
             }
         }
+
+        if (Input.GetKeyDown(KeyCode.Space))
+        {
+            Vector3 mouseInWorld = board.GetMouseCoordinates();
+            Vector2Int spot = board.GetBoardCoordinates(mouseInWorld);
+
+            if (Obstacles[spot.x, spot.y])
+            {
+                Obstacles[spot.x,spot.y] = false;
+                Destroy(ObstacleObjects[spot.x, spot.y]);
+            }
+            else
+            {
+                Obstacles[spot.x, spot.y] = true;
+                ObstacleObjects[spot.x, spot.y] = Instantiate(BlockMarker, board.ConvertToWorldCoordinates(spot) + new Vector3(0, 2, 0), Quaternion.identity);
+            }
+        }
     }
 
     List<Vector2Int> CreatePath(Vector2Int destination, Vector2Int location)
     {
-        Debug.Log("Searching for path from "+destination+" to " +location);
+        //Debug.Log("Searching for path from "+destination+" to " +location);
         Vector2Int diff = new Vector2Int(destination.x - location.x, destination.y - location.y);
         float theta = Mathf.Atan2(diff.y, diff.x);
-        Debug.Log("Found theta: "+theta);
+        //Debug.Log("Found theta: "+theta);
         return CreatePath(destination, location, new List<Vector2Int>(), theta, new Vector2(), 0);
     }
 
@@ -124,7 +164,12 @@ public class PathFollower : MonoBehaviour
             Iterations += 1;
             while (ray.Step());
             //Check for obstruction and do recursive things
-            
+            if (Obstacles[ray.Location().x, ray.Location().y])
+            {
+                Debug.Log("BLOCKED!");
+                return steps;
+            }
+
         } while (ray.Location() != destination && Iterations<20);
         
         //Other base case. destination reached
@@ -188,6 +233,7 @@ public class PathFollower : MonoBehaviour
             if (addition.magnitude > 0)
             {
                 Path.Push(Start += addition);
+                Debug.Log(Path.Peek());
                 return false;
             }
 
