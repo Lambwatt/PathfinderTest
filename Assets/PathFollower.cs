@@ -60,9 +60,9 @@ public class PathFollower : MonoBehaviour
 
             Stack<Vector2Int> tmp = new Stack<Vector2Int>();
 
-            /*List<PathRay> steps =*/ CreatePath3(Destination, Location, ref tmp);
+            /*List<PathRay> steps =*/ //CreatePath3(Destination, Location, ref tmp);
             //Stack<Vector2Int> tmp = new Stack<Vector2Int>();
-            
+            tmp = AStarProper(Location, Destination);
             //foreach(PathRay step in steps)
             //{
             //    tmp = step.GetPath();
@@ -83,6 +83,12 @@ public class PathFollower : MonoBehaviour
             for(int i = 0; i<spots.Count; i++)
             {
                 PathMarks.Add(Instantiate(PathMarker, board.ConvertToWorldCoordinates(spots[i]) + new Vector3(0, 2, 0), Quaternion.identity));
+                if (i > 0)
+                {
+                    PathMarks.Add(Instantiate(PathMarker, board.ConvertToWorldCoordinates((Vector2)spots[i-1]+((Vector2)spots[i] - (Vector2)spots[i-1])*.25f) + new Vector3(0, 2, 0), Quaternion.identity));
+                    PathMarks.Add(Instantiate(PathMarker, board.ConvertToWorldCoordinates((Vector2)spots[i - 1] + ((Vector2)spots[i] - (Vector2)spots[i - 1]) * .5f) + new Vector3(0, 2, 0), Quaternion.identity));
+                    PathMarks.Add(Instantiate(PathMarker, board.ConvertToWorldCoordinates((Vector2)spots[i - 1] + ((Vector2)spots[i] - (Vector2)spots[i - 1]) * .75f) + new Vector3(0, 2, 0), Quaternion.identity));
+                }
             }
         }
 
@@ -227,19 +233,20 @@ public class PathFollower : MonoBehaviour
         //Sort list of unvisited tiles within 1 step by distance to destination and test them in order of closeness to target.
         if (iterations == 32 || location == destination || Obstacles[destination.x, destination.y])
         {
+            Debug.Log("HIT DEST");
             path.Push(location);
             return true;
         }
 
         if (location.x < 0 || location.y < 0 || location.x >= board.Dimensions.x || location.y >= board.Dimensions.y)
         {
-           // Debug.Log("OUT OF BOUNDS");
+            Debug.Log("OUT OF BOUNDS");
             return false;
         }
 
         if (Obstacles[location.x, location.y])
         {
-            //Debug.Log("HIT WALL");
+            Debug.Log("HIT WALL");
             return false;
         }
 
@@ -256,85 +263,29 @@ public class PathFollower : MonoBehaviour
         //Debug.Log("dir = " + dir);
 
         float dist = Vector2Int.Distance(destination, location);
-        Vector2Int candidate;
-        int index = -1;
+        Vector2Int[] candidate = new Vector2Int[8];
+        //int index = -1;
         //if (dir == -1)
         //{
-            for (int i = 0; i < directions.Length; i++)
+        for (int i = 0; i < directions.Length; i++)
+        {
+            candidate[i] = location + directions[i];
+        }
+
+        System.Array.Sort(candidate, new SquareComparer(destination));
+        visited.Add(location.x * 8 + location.y);
+        path.Push(location);
+        for (int i = 0; i<candidate.Length; i++)
+        {
+            if (!visited.Contains(candidate[i].x * 8 + candidate[i].y)/* && tmpI != back*/)
             {
-                candidate = location + directions[i];
-                if (Vector2Int.Distance(destination, candidate) < dist)
+                if (CreatePath3(destination, candidate[i], ref path, visited, 1, iterations + 1))
                 {
-                    index = i;
-                    dist = Vector2Int.Distance(destination, candidate);
+                    
+                    Debug.Log("PATH SUCEEDED");
+                    return true;
                 }
             }
-        //}
-        //else
-        //{
-        //    index = dir;
-        //}
-
-        int limit;
-        if (dir > -1) {
-            limit = 3;//Mathf.Abs(index - dir);
-            //Debug.Log("derived Limit: " + limit);
-            path.Push(location);
-            visited.Add(location.x * 8 + location.y);
-        }
-        else
-        {
-            limit = 4;//directions.Length / 2;
-            //Debug.Log("initial Limit: " + limit);  
-        }
-
-        int back = (dir + 4 + directions.Length) % directions.Length;
-        int tmpI;
-        Vector2Int tmpV;
-
-        //tmpI = (index + directions.Length) % directions.Length;
-        tmpV = location + directions[index];
-
-        if (!visited.Contains(tmpV.x * 8 + tmpV.y)/* && tmpI != back*/)
-        {
-            if (CreatePath3(destination, location + directions[index], ref path, visited, index, iterations + 1))
-                return true;
-        }
-
-        
-        //Debug.Log("Back = "+ back);
-        for (int i = 1; i <=limit; i++)
-        {
-            tmpI = (index + i + directions.Length) % directions.Length;
-            tmpV = location + directions[tmpI];
-            if (!visited.Contains(tmpV.x*8+tmpV.y)/* && tmpI != back*/) {
-                if (CreatePath3(destination, location + directions[tmpI], ref path, visited, tmpI, iterations + 1))
-                    return true;
-            }
-            //else
-            //{
-            //    Debug.Log("CAN'T GO BACK");
-            //}
-
-            tmpI = (index - i + directions.Length) % directions.Length;
-            tmpV = location + directions[tmpI];
-            if (!visited.Contains(tmpV.x * 8 + tmpV.y)/* && tmpI != back*/)
-            {
-                if (CreatePath3(destination, location + directions[tmpI], ref path, visited, tmpI, iterations + 1))
-                    return true;
-            }
-            //else
-            //{
-            //    Debug.Log("CAN'T GO BACK");
-            //}
-        }
-
-        tmpI = (index + 4 + directions.Length) % directions.Length;
-        tmpV = location + directions[tmpI];
-        if (!visited.Contains(tmpV.x * 8 + tmpV.y)/* && tmpI != back*/)
-        {
-            if (CreatePath3(destination, location + directions[index], ref path, visited, index, iterations + 1))
-                return true;
         }
 
         if (dir > -1)
@@ -343,13 +294,215 @@ public class PathFollower : MonoBehaviour
             visited.Remove(location.x * 8 + location.y);
         }
 
+        Debug.Log("PATH FAILED");
         return false;
+        //    if (Vector2Int.Distance(destination, candidate) < dist)
+        //    {
+        //        index = i;
+        //        dist = Vector2Int.Distance(destination, candidate);
+        //    }
+        //}
+        //}
+        //else
+        //{
+        //    index = dir;
+        //}
+
+        //int limit;
+        //if (dir > -1) {
+        //    limit = 3;//Mathf.Abs(index - dir);
+        //    //Debug.Log("derived Limit: " + limit);
+        //    path.Push(location);
+        //    visited.Add(location.x * 8 + location.y);
+        //}
+        //else
+        //{
+        //    limit = 4;//directions.Length / 2;
+        //    //Debug.Log("initial Limit: " + limit);  
+        //}
+
+        //int back = (dir + 4 + directions.Length) % directions.Length;
+        //int tmpI;
+        //Vector2Int tmpV;
+
+        ////tmpI = (index + directions.Length) % directions.Length;
+        //tmpV = location + directions[index];
+
+        //if (!visited.Contains(tmpV.x * 8 + tmpV.y)/* && tmpI != back*/)
+        //{
+        //    if (CreatePath3(destination, location + directions[index], ref path, visited, index, iterations + 1))
+        //        return true;
+        //}
+
+        
+        ////Debug.Log("Back = "+ back);
+        //for (int i = 1; i <=limit; i++)
+        //{
+        //    tmpI = (index + i + directions.Length) % directions.Length;
+        //    tmpV = location + directions[tmpI];
+        //    if (!visited.Contains(tmpV.x*8+tmpV.y)/* && tmpI != back*/) {
+        //        if (CreatePath3(destination, location + directions[tmpI], ref path, visited, tmpI, iterations + 1))
+        //            return true;
+        //    }
+        //    //else
+        //    //{
+        //    //    Debug.Log("CAN'T GO BACK");
+        //    //}
+
+        //    tmpI = (index - i + directions.Length) % directions.Length;
+        //    tmpV = location + directions[tmpI];
+        //    if (!visited.Contains(tmpV.x * 8 + tmpV.y)/* && tmpI != back*/)
+        //    {
+        //        if (CreatePath3(destination, location + directions[tmpI], ref path, visited, tmpI, iterations + 1))
+        //            return true;
+        //    }
+        //    //else
+        //    //{
+        //    //    Debug.Log("CAN'T GO BACK");
+        //    //}
+        //}
+
+        //tmpI = (index + 4 + directions.Length) % directions.Length;
+        //tmpV = location + directions[tmpI];
+        //if (!visited.Contains(tmpV.x * 8 + tmpV.y)/* && tmpI != back*/)
+        //{
+        //    if (CreatePath3(destination, location + directions[index], ref path, visited, index, iterations + 1))
+        //        return true;
+        //}
+
+        //if (dir > -1)
+        //{
+        //    path.Pop();
+        //    visited.Remove(location.x * 8 + location.y);
+        //}
+
+        //return false;
     }
 
-    
-       
-   
-    
+
+
+    public Stack<Vector2Int> AStarProper(Vector2Int start, Vector2Int goal)
+    {
+        int width = 8;
+
+        HashSet<Vector2Int> openSet = new HashSet<Vector2Int>();
+        openSet.Add(start);
+
+        Dictionary<int, float> gScore = new Dictionary<int, float>();
+        Dictionary<int, float> fScore = new Dictionary<int, float>();
+        Dictionary<int, Vector2Int> cameFrom = new Dictionary<int, Vector2Int>();
+
+        SetScore(start, gScore, width, 0);
+        SetScore(start, fScore, width, 0);
+
+        while (openSet.Count > 0)
+        {
+            //current:= the node in openSet having the lowest fScore[] value
+            Vector2Int current = GetNodeWithSmallestFScore(openSet, fScore, width);
+            if (current == goal)
+                return ReconstructPath(cameFrom, current, start, width);
+
+            Vector2Int[] neighbors = new Vector2Int[8];
+            //int index = -1;
+            //if (dir == -1)
+            //{
+            for (int i = 0; i < directions.Length; i++)
+            {
+                neighbors[i] = current + directions[i];
+            }
+
+            openSet.Remove(current);
+            foreach (Vector2Int n in neighbors)
+            {
+                if(n.x < 0 || n.y < 0 || n.x >= board.Dimensions.x || n.y >= board.Dimensions.y)
+                    continue;
+
+                // d(current,neighbor) is the weight of the edge from current to neighbor
+                // tentative_gScore is the distance from start to the neighbor through current
+                float tentative_gScore = GetScore(current, gScore, width) + 1;
+                if (tentative_gScore < GetScore(n, gScore, width))
+                {
+                    // This path to neighbor is better than any previous one. Record it!
+                    int key = NodeToInt(n, width);
+                    cameFrom[key] = current;
+                    gScore[key] = tentative_gScore;
+                    fScore[key] = gScore[key] + HeuristicFn(n, goal);
+                    if (!openSet.Contains(n))
+                    {
+                        openSet.Add(n);
+                    }
+                }
+            }
+        }
+    // Open set is empty but goal was never reached
+        //return failure
+        return null;
+    }
+
+    Stack<Vector2Int> ReconstructPath(Dictionary<int, Vector2Int> cameFrom, Vector2Int current, Vector2Int start, int width)
+    {
+
+   // total_path:= { current}
+     //   while current in cameFrom.Keys:
+    //    current:= cameFrom[current]
+    //    total_path.prepend(current)
+    //return total_path
+
+
+        Stack<Vector2Int> path = new Stack<Vector2Int>();
+        path.Push(current);
+
+        while (cameFrom[NodeToInt(current, width)]!= start)
+        {
+            current = cameFrom[NodeToInt(current, width)];
+            path.Push(current);
+        }
+
+        return path;
+    }
+
+    Vector2Int GetNodeWithSmallestFScore(HashSet<Vector2Int> set, Dictionary<int, float> fScore, int width)
+    {
+        Vector2Int res = new Vector2Int(-1,-1);
+        foreach(Vector2Int node in set)
+        {
+            if(res == null)
+            {
+                res = node;
+            }
+            else
+            {
+                if (GetScore(node, fScore, width) < GetScore(res, fScore, width))
+                    res = node;
+            }
+        }
+        return res;
+    }
+
+    public float GetScore(Vector2Int node, Dictionary<int, float> gScore, int width)
+    {
+        int key = NodeToInt(node, width);
+        if (gScore.ContainsKey(key))
+            return gScore[key];
+        else
+            return int.MaxValue;
+    }
+
+    public float SetScore(Vector2Int node, Dictionary<int, float> gScore, int width, float value)
+    {
+        return gScore[NodeToInt(node, width)] = value;
+    }
+
+    public float HeuristicFn(Vector2Int node, Vector2Int destination)
+    {
+        Debug.Log("Testing [" + node.x + ", " + node.y + "]");
+        return Obstacles[node.x, node.y] ? board.Dimensions.y*board.Dimensions.x : Vector2.Distance(node, destination);
+    }
+
+    public int NodeToInt(Vector2Int node, int width)
+    {
+        return node.x * width + node.y;
+    }
 
     void Concat(List<PathRay> a, List<PathRay> b)
     {
@@ -359,7 +512,46 @@ public class PathFollower : MonoBehaviour
         }
     }
 
+    public class SquareComparer : IComparer<Vector2Int>
+    {
+        Vector2Int destination;
 
+        public SquareComparer(Vector2Int dest)
+        {
+            destination = dest;
+        }
+
+        public int Compare(Vector2Int x, Vector2Int y)
+        {
+            if (x == null)
+            {
+                if (y == null)
+                {
+                    return 0;
+                }
+                else
+                {
+                    return 1;
+                }
+            }
+
+            float xDist = Vector2Int.Distance(x, destination);
+            float yDist = Vector2Int.Distance(y, destination);
+
+            if (xDist == yDist)
+            {
+                return 0;
+            }
+            else if(xDist > yDist)
+            {
+                return 1;
+            }
+            else
+            {
+                return -1;
+            }
+        }
+    }
 
     //Walks in a straight line from a point
     public class PathRay
