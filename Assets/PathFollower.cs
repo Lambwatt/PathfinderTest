@@ -19,6 +19,8 @@ public class PathFollower : MonoBehaviour
 
     public static Vector2Int[] directions;
 
+    int maxDistance;
+
     // Start is called before the first frame update
     void Start()
     {
@@ -37,6 +39,8 @@ public class PathFollower : MonoBehaviour
         ObstacleObjects = new GameObject[board.Dimensions.x, board.Dimensions.y];
        
         PathMarks = new List<GameObject>();
+
+        maxDistance = board.Dimensions.y * board.Dimensions.x;
     }
 
     // Update is called once per frame
@@ -50,6 +54,8 @@ public class PathFollower : MonoBehaviour
         }
         else if(Input.GetMouseButtonDown(1))
         {
+            clearPath();
+
             Vector3 mouseInWorld = board.GetMouseCoordinates();
             Destination = board.GetBoardCoordinates(mouseInWorld);
 
@@ -57,30 +63,31 @@ public class PathFollower : MonoBehaviour
 
             Stack<Vector2Int> tmp = new Stack<Vector2Int>();
 
-
             tmp = AStarProper(Location, Destination);
-            
-            while (tmp.Count > 0) {
-                spots.Add(tmp.Pop());
-            }
 
-            //Clear path
-            for (int i = PathMarks.Count - 1; i>=0; i--)
+            //If successful, plot path, otherwise stop
+            if (tmp != null)
             {
-                Destroy(PathMarks[i]);
-            }
-            PathMarks.Clear();
-            
-            //Create Path
-            for(int i = 0; i<spots.Count; i++)
-            {
-                PathMarks.Add(Instantiate(PathMarker, board.ConvertToWorldCoordinates(spots[i]) + new Vector3(0, 2, 0), Quaternion.identity));
-                if (i > 0)
+                while (tmp.Count > 0)
                 {
-                    PathMarks.Add(Instantiate(PathMarker, board.ConvertToWorldCoordinates((Vector2)spots[i-1]+((Vector2)spots[i] - (Vector2)spots[i-1])*.25f) + new Vector3(0, 2, 0), Quaternion.identity));
-                    PathMarks.Add(Instantiate(PathMarker, board.ConvertToWorldCoordinates((Vector2)spots[i - 1] + ((Vector2)spots[i] - (Vector2)spots[i - 1]) * .5f) + new Vector3(0, 2, 0), Quaternion.identity));
-                    PathMarks.Add(Instantiate(PathMarker, board.ConvertToWorldCoordinates((Vector2)spots[i - 1] + ((Vector2)spots[i] - (Vector2)spots[i - 1]) * .75f) + new Vector3(0, 2, 0), Quaternion.identity));
+                    spots.Add(tmp.Pop());
                 }
+
+                //Create Path
+                for (int i = 0; i < spots.Count; i++)
+                {
+                    PathMarks.Add(Instantiate(PathMarker, board.ConvertToWorldCoordinates(spots[i]) + new Vector3(0, 2, 0), Quaternion.identity));
+                    if (i > 0)
+                    {
+                        PathMarks.Add(Instantiate(PathMarker, board.ConvertToWorldCoordinates((Vector2)spots[i - 1] + ((Vector2)spots[i] - (Vector2)spots[i - 1]) * .25f) + new Vector3(0, 2, 0), Quaternion.identity));
+                        PathMarks.Add(Instantiate(PathMarker, board.ConvertToWorldCoordinates((Vector2)spots[i - 1] + ((Vector2)spots[i] - (Vector2)spots[i - 1]) * .5f) + new Vector3(0, 2, 0), Quaternion.identity));
+                        PathMarks.Add(Instantiate(PathMarker, board.ConvertToWorldCoordinates((Vector2)spots[i - 1] + ((Vector2)spots[i] - (Vector2)spots[i - 1]) * .75f) + new Vector3(0, 2, 0), Quaternion.identity));
+                    }
+                }
+            }
+            else
+            {
+                Debug.Log("Could not find path");
             }
         }
 
@@ -100,6 +107,15 @@ public class PathFollower : MonoBehaviour
                 ObstacleObjects[spot.x, spot.y] = Instantiate(BlockMarker, board.ConvertToWorldCoordinates(spot) + new Vector3(0, 2, 0), Quaternion.identity);
             }
         }
+    }
+
+    void clearPath()
+    {
+        for (int i = PathMarks.Count - 1; i >= 0; i--)
+        {
+            Destroy(PathMarks[i]);
+        }
+        PathMarks.Clear();
     }
 
     public Stack<Vector2Int> AStarProper(Vector2Int start, Vector2Int goal)
@@ -139,7 +155,7 @@ public class PathFollower : MonoBehaviour
                 // d(current,neighbor) is the weight of the edge from current to neighbor
                 // tentative_gScore is the distance from start to the neighbor through current
                 float tentative_gScore = GetScore(current, gScore, width) + 1;
-                if (tentative_gScore < GetScore(n, gScore, width))
+                if (tentative_gScore < GetScore(n, gScore, width) && HeuristicFn(n, goal)<maxDistance)
                 {
                     // This path to neighbor is better than any previous one. Record it!
                     int key = NodeToInt(n, width);
@@ -213,8 +229,7 @@ public class PathFollower : MonoBehaviour
 
     public float HeuristicFn(Vector2Int node, Vector2Int destination)
     {
-        Debug.Log("Testing [" + node.x + ", " + node.y + "]");
-        return Obstacles[node.x, node.y] ? board.Dimensions.y*board.Dimensions.x : Vector2.Distance(node, destination);
+        return Obstacles[node.x, node.y] ? maxDistance : Vector2.Distance(node, destination);
     }
 
     public int NodeToInt(Vector2Int node, int width)
