@@ -2,12 +2,9 @@
 using System.Collections.Generic;
 using UnityEngine;
 
-public class PathFollower : MonoBehaviour
+public class PathFinder : MonoBehaviour
 {
     public Board board;
-
-    public Vector2Int Location;
-    public Vector2Int Destination;
 
     public GameObject PathMarker;
     public GameObject BlockMarker;
@@ -46,51 +43,52 @@ public class PathFollower : MonoBehaviour
     // Update is called once per frame
     void Update()
     {
-        if (Input.GetMouseButtonDown(0))
-        {
-            Vector3 mouseInWorld = board.GetMouseCoordinates();
-            Location = board.GetBoardCoordinates(mouseInWorld);
-            transform.position = board.ConvertToWorldCoordinates(Location);
-        }
-        else if(Input.GetMouseButtonDown(1))
-        {
-            clearPath();
+        //if (Input.GetMouseButtonDown(0))
+        //{
+        //    Vector3 mouseInWorld = board.GetMouseCoordinates();
+        //    Location = board.GetBoardCoordinates(mouseInWorld);
+        //    transform.position = board.ConvertToWorldCoordinates(Location);
+        //}
+        //else if(Input.GetMouseButtonDown(1))
+        //{
+        //    clearPath();
 
-            Vector3 mouseInWorld = board.GetMouseCoordinates();
-            Destination = board.GetBoardCoordinates(mouseInWorld);
+        //    Vector3 mouseInWorld = board.GetMouseCoordinates();
+        //    Destination = board.GetBoardCoordinates(mouseInWorld);
 
-            List<Vector2Int> spots = new List<Vector2Int>();
+        //    List<Vector2Int> spots = new List<Vector2Int>();
 
-            Stack<Vector2Int> tmp = new Stack<Vector2Int>();
+        //    Stack<Vector2Int> tmp = new Stack<Vector2Int>();
 
-            tmp = AStarProper(Location, Destination);
+        //    tmp = AStarProper(Location, Destination);
 
-            //If successful, plot path, otherwise stop
-            if (tmp != null)
-            {
-                while (tmp.Count > 0)
-                {
-                    spots.Add(tmp.Pop());
-                }
+        //    //If successful, plot path, otherwise stop
+        //    if (tmp != null)
+        //    {
+        //        while (tmp.Count > 0)
+        //        {
+        //            spots.Add(tmp.Pop());
+        //        }
 
-                //Create Path
-                for (int i = 0; i < spots.Count; i++)
-                {
-                    PathMarks.Add(Instantiate(PathMarker, board.ConvertToWorldCoordinates(spots[i]) + new Vector3(0, 2, 0), Quaternion.identity));
-                    if (i > 0)
-                    {
-                        PathMarks.Add(Instantiate(PathMarker, board.ConvertToWorldCoordinates((Vector2)spots[i - 1] + ((Vector2)spots[i] - (Vector2)spots[i - 1]) * .25f) + new Vector3(0, 2, 0), Quaternion.identity));
-                        PathMarks.Add(Instantiate(PathMarker, board.ConvertToWorldCoordinates((Vector2)spots[i - 1] + ((Vector2)spots[i] - (Vector2)spots[i - 1]) * .5f) + new Vector3(0, 2, 0), Quaternion.identity));
-                        PathMarks.Add(Instantiate(PathMarker, board.ConvertToWorldCoordinates((Vector2)spots[i - 1] + ((Vector2)spots[i] - (Vector2)spots[i - 1]) * .75f) + new Vector3(0, 2, 0), Quaternion.identity));
-                    }
-                }
-            }
-            else
-            {
-                Debug.Log("Could not find path");
-            }
-        }
+        //        ////Create Path
+        //        //for (int i = 0; i < spots.Count; i++)
+        //        //{
+        //        //    PathMarks.Add(Instantiate(PathMarker, board.ConvertToWorldCoordinates(spots[i]) + new Vector3(0, 2, 0), Quaternion.identity));
+        //        //    if (i > 0)
+        //        //    {
+        //        //        PathMarks.Add(Instantiate(PathMarker, board.ConvertToWorldCoordinates((Vector2)spots[i - 1] + ((Vector2)spots[i] - (Vector2)spots[i - 1]) * .25f) + new Vector3(0, 2, 0), Quaternion.identity));
+        //        //        PathMarks.Add(Instantiate(PathMarker, board.ConvertToWorldCoordinates((Vector2)spots[i - 1] + ((Vector2)spots[i] - (Vector2)spots[i - 1]) * .5f) + new Vector3(0, 2, 0), Quaternion.identity));
+        //        //        PathMarks.Add(Instantiate(PathMarker, board.ConvertToWorldCoordinates((Vector2)spots[i - 1] + ((Vector2)spots[i] - (Vector2)spots[i - 1]) * .75f) + new Vector3(0, 2, 0), Quaternion.identity));
+        //        //    }
+        //        //}
+        //    }
+        //    else
+        //    {
+        //        Debug.Log("Could not find path");
+        //    }
+        //}
 
+        //Move activation to interface
         if (Input.GetKeyDown(KeyCode.Space))
         {
             Vector3 mouseInWorld = board.GetMouseCoordinates();
@@ -109,13 +107,27 @@ public class PathFollower : MonoBehaviour
         }
     }
 
-    void clearPath()
+    public List<Vector2Int> GetPath(Vector2Int start, Vector2Int end)
     {
-        for (int i = PathMarks.Count - 1; i >= 0; i--)
+        List<Vector2Int> spots = new List<Vector2Int>();
+        Stack<Vector2Int> tmp = new Stack<Vector2Int>();
+
+        tmp = AStarProper(start, end);
+
+        //If successful, convert to list and return
+        if (tmp != null)
         {
-            Destroy(PathMarks[i]);
+            while (tmp.Count > 0)
+            {
+                spots.Add(tmp.Pop());
+            }
+            return spots;
         }
-        PathMarks.Clear();
+        else
+        {
+            Debug.Log("Could not find path");
+            return null;
+        }
     }
 
     public Stack<Vector2Int> AStarProper(Vector2Int start, Vector2Int goal)
