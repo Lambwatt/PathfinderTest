@@ -117,10 +117,13 @@ public class PathFinder : MonoBehaviour
         //If successful, convert to list and return
         if (tmp != null)
         {
+            spots.Add(start);
             while (tmp.Count > 0)
             {
                 spots.Add(tmp.Pop());
             }
+            //spots.Reverse();
+
             return spots;
         }
         else

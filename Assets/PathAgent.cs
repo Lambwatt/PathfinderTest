@@ -13,7 +13,10 @@ public class PathAgent : MonoBehaviour
 
     List<GameObject> PathMarks;
     List<Vector2Int> path;
-    PositionAppointment pathAppointments; 
+    PositionAppointment pathAppointments;
+
+    bool walking = false;
+
 
     // Start is called before the first frame update
     void Start()
@@ -24,41 +27,48 @@ public class PathAgent : MonoBehaviour
     // Update is called once per frame
     void Update()
     {
-        //while moving, walk along path otherwise wait
-        if (Input.GetMouseButtonDown(0))
+        if (!walking)
         {
-            Vector3 mouseInWorld = board.GetMouseCoordinates();
-            Location = board.GetBoardCoordinates(mouseInWorld);
-            transform.position = board.ConvertToWorldCoordinates(Location);
-        }
-        else if (Input.GetMouseButtonDown(1))
-        {
-            clearPath();
-
-            Vector3 mouseInWorld = board.GetMouseCoordinates();
-            Destination = board.GetBoardCoordinates(mouseInWorld);
-
-            path = pathFinder.GetPath(Location, Destination);
-
-            //If successful, plot path, otherwise stop
-            if (path != null)
+            //while moving, walk along path otherwise wait
+            if (Input.GetMouseButtonDown(0))
             {
+                Vector3 mouseInWorld = board.GetMouseCoordinates();
+                Location = board.GetBoardCoordinates(mouseInWorld);
+                transform.position = board.ConvertToWorldCoordinates(Location);
+            }
+            else if (Input.GetMouseButtonDown(1))
+            {
+                clearPath();
 
-                //Create Path
-                for (int i = 0; i < path.Count; i++)
+                Vector3 mouseInWorld = board.GetMouseCoordinates();
+                Destination = board.GetBoardCoordinates(mouseInWorld);
+
+                path = pathFinder.GetPath(Location, Destination);
+
+                //If successful, plot path, otherwise stop
+                if (path != null)
                 {
-                    PathMarks.Add(Instantiate(PathMarker, board.ConvertToWorldCoordinates(path[i]) + new Vector3(0, 2, 0), Quaternion.identity));
-                    if (i > 0)
+
+                    //Create Path
+                    for (int i = 0; i < path.Count; i++)
                     {
-                        PathMarks.Add(Instantiate(PathMarker, board.ConvertToWorldCoordinates((Vector2)path[i - 1] + ((Vector2)path[i] - (Vector2)path[i - 1]) * .25f) + new Vector3(0, 2, 0), Quaternion.identity));
-                        PathMarks.Add(Instantiate(PathMarker, board.ConvertToWorldCoordinates((Vector2)path[i - 1] + ((Vector2)path[i] - (Vector2)path[i - 1]) * .5f) + new Vector3(0, 2, 0), Quaternion.identity));
-                        PathMarks.Add(Instantiate(PathMarker, board.ConvertToWorldCoordinates((Vector2)path[i - 1] + ((Vector2)path[i] - (Vector2)path[i - 1]) * .75f) + new Vector3(0, 2, 0), Quaternion.identity));
+                        PathMarks.Add(Instantiate(PathMarker, board.ConvertToWorldCoordinates(path[i]) + new Vector3(0, 2, 0), Quaternion.identity));
+                        if (i > 0)
+                        {
+                            PathMarks.Add(Instantiate(PathMarker, board.ConvertToWorldCoordinates((Vector2)path[i - 1] + ((Vector2)path[i] - (Vector2)path[i - 1]) * .25f) + new Vector3(0, 2, 0), Quaternion.identity));
+                            PathMarks.Add(Instantiate(PathMarker, board.ConvertToWorldCoordinates((Vector2)path[i - 1] + ((Vector2)path[i] - (Vector2)path[i - 1]) * .5f) + new Vector3(0, 2, 0), Quaternion.identity));
+                            PathMarks.Add(Instantiate(PathMarker, board.ConvertToWorldCoordinates((Vector2)path[i - 1] + ((Vector2)path[i] - (Vector2)path[i - 1]) * .75f) + new Vector3(0, 2, 0), Quaternion.identity));
+                        }
                     }
                 }
+                else
+                {
+                    Debug.Log("Could not find path");
+                }
             }
-            else
+            else if (Input.GetKeyDown(KeyCode.W))
             {
-                Debug.Log("Could not find path");
+                StartCoroutine(Walk());
             }
         }
     }
@@ -72,8 +82,25 @@ public class PathAgent : MonoBehaviour
         PathMarks.Clear();
     }
 
-    public void Walk()
+    IEnumerator Walk()
     {
         //Begin walking along path
+        Vector2Int[] operatingPath = path.ToArray();
+
+        walking = true;
+        float t = 0;
+
+        for(int i = 0; i<operatingPath.Length-1; i++)
+        {
+            t = 0;
+            while (t < 1)
+            {
+                yield return null;
+                t += Time.deltaTime;
+                transform.position = board.ConvertToWorldCoordinates(Vector2.Lerp(operatingPath[i], operatingPath[i + 1], t)) + new Vector3(0, 2, 0);
+            }
+        }
+        Location = operatingPath[operatingPath.Length - 1];
+        walking = false;
     }
 }

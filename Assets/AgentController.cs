@@ -22,7 +22,7 @@ public class AgentController : MonoBehaviour
         {
             foreach(PathAgent a in agents)
             {
-                a.Walk();
+                //a.Walk();
             }
 
             //count down tick, at end of tick, update scheduler
