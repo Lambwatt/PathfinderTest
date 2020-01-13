@@ -374,7 +374,7 @@ MonoBehaviour:
   Selection: {fileID: 1501001391}
   Prefab: {fileID: 710540156419632278, guid: 3af5bf8fe08826645a12ee7f458bb150, type: 3}
   Board: {fileID: 1561782187}
-  PathManager: {fileID: 0}
+  PathManager: {fileID: 1561782189}
 --- !u!4 &589650078
 Transform:
   m_ObjectHideFlags: 0
@@ -933,6 +933,11 @@ PrefabInstance:
         type: 3}
       propertyPath: m_Name
       value: Agent
+      objectReference: {fileID: 0}
+    - target: {fileID: 710540156419632272, guid: 3af5bf8fe08826645a12ee7f458bb150,
+        type: 3}
+      propertyPath: m_IsActive
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 710540156419632276, guid: 3af5bf8fe08826645a12ee7f458bb150,
         type: 3}

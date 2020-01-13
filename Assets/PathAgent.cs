@@ -36,37 +36,39 @@ public class PathAgent : MonoBehaviour
                 //transform.position = board.ConvertToWorldCoordinates(Location);
             //}
             //else 
-            if (Input.GetMouseButtonDown(1))
-            {
-                clearPath();
+            //if (Input.GetMouseButtonDown(1))
+            //{
+            //    clearPath();
 
-                Vector3 mouseInWorld = board.GetMouseCoordinates();
-                Destination = board.GetBoardCoordinates(mouseInWorld);
+            //    Vector3 mouseInWorld = board.GetMouseCoordinates();
+            //    Destination = board.GetBoardCoordinates(mouseInWorld);
 
-                path = pathFinder.GetPath(Location, Destination);
+            //    path = pathFinder.GetPath(Location, Destination);
 
-                //If successful, plot path, otherwise stop
-                if (path != null)
-                {
-                    //Create Path
-                    for (int i = 0; i < path.Count; i++)
-                    {
+            //    //If successful, plot path, otherwise stop
+            //    if (path != null)
+            //    {
+            //        //Create Path
+            //        for (int i = 0; i < path.Count; i++)
+            //        {
                         
-                        PathMarks.Add(Instantiate(PathMarker, board.ConvertToWorldCoordinates(path[i]) + new Vector3(0, 2, 0), Quaternion.identity));
-                        if (i > 0)
-                        {
-                            PathMarks.Add(Instantiate(PathMarker, board.ConvertToWorldCoordinates((Vector2)path[i - 1] + ((Vector2)path[i] - (Vector2)path[i - 1]) * .25f) + new Vector3(0, 2, 0), Quaternion.identity));
-                            PathMarks.Add(Instantiate(PathMarker, board.ConvertToWorldCoordinates((Vector2)path[i - 1] + ((Vector2)path[i] - (Vector2)path[i - 1]) * .5f) + new Vector3(0, 2, 0), Quaternion.identity));
-                            PathMarks.Add(Instantiate(PathMarker, board.ConvertToWorldCoordinates((Vector2)path[i - 1] + ((Vector2)path[i] - (Vector2)path[i - 1]) * .75f) + new Vector3(0, 2, 0), Quaternion.identity));
-                        }
-                    }
-                }
-                else
-                {
-                    Debug.Log("Could not find path");
-                }
-            }
-            else if (Input.GetKeyDown(KeyCode.W))
+            //            PathMarks.Add(Instantiate(PathMarker, board.ConvertToWorldCoordinates(path[i]) + new Vector3(0, 2, 0), Quaternion.identity));
+            //            if (i > 0)
+            //            {
+            //                PathMarks.Add(Instantiate(PathMarker, board.ConvertToWorldCoordinates((Vector2)path[i - 1] + ((Vector2)path[i] - (Vector2)path[i - 1]) * .25f) + new Vector3(0, 2, 0), Quaternion.identity));
+            //                PathMarks.Add(Instantiate(PathMarker, board.ConvertToWorldCoordinates((Vector2)path[i - 1] + ((Vector2)path[i] - (Vector2)path[i - 1]) * .5f) + new Vector3(0, 2, 0), Quaternion.identity));
+            //                PathMarks.Add(Instantiate(PathMarker, board.ConvertToWorldCoordinates((Vector2)path[i - 1] + ((Vector2)path[i] - (Vector2)path[i - 1]) * .75f) + new Vector3(0, 2, 0), Quaternion.identity));
+            //            }
+            //        }
+            //    }
+            //    else
+            //    {
+            //        Debug.Log("Could not find path");
+            //    }
+            //}
+            //else 
+            
+            if (Input.GetKeyDown(KeyCode.W))
             {
                 StartCoroutine(Walk());
             }
