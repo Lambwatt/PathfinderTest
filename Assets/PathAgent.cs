@@ -17,7 +17,6 @@ public class PathAgent : MonoBehaviour
 
     bool walking = false;
 
-
     // Start is called before the first frame update
     void Start()
     {
@@ -30,13 +29,14 @@ public class PathAgent : MonoBehaviour
         if (!walking)
         {
             //while moving, walk along path otherwise wait
-            if (Input.GetMouseButtonDown(0))
-            {
-                Vector3 mouseInWorld = board.GetMouseCoordinates();
-                Location = board.GetBoardCoordinates(mouseInWorld);
-                transform.position = board.ConvertToWorldCoordinates(Location);
-            }
-            else if (Input.GetMouseButtonDown(1))
+            //if (Input.GetMouseButtonDown(0))
+            //{
+                //Vector3 mouseInWorld = board.GetMouseCoordinates();
+                //Location = board.GetBoardCoordinates(mouseInWorld);
+                //transform.position = board.ConvertToWorldCoordinates(Location);
+            //}
+            //else 
+            if (Input.GetMouseButtonDown(1))
             {
                 clearPath();
 

@@ -41,6 +41,7 @@ public class PathFinder : MonoBehaviour
 
         maxDistance = board.Dimensions.y * board.Dimensions.x;
 
+        Scheduler = new PositionScheduler(maxDistance);
         Scheduler.Board = board;
     }
 
