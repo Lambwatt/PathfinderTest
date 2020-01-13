@@ -5,12 +5,12 @@ using UnityEngine;
 public class PositionAppointment
 {
     public int Time;
-    public int Position;
+    public Vector2Int Position;
     public bool IsLast;
 
     PositionScheduler host;
 
-    public PositionAppointment(PositionScheduler scheduler, int time, int position, bool isLast = false)
+    public PositionAppointment(PositionScheduler scheduler, int time, Vector2Int position, bool isLast = false)
     {
         host = scheduler;
         Time = time;
@@ -20,7 +20,7 @@ public class PositionAppointment
 
     public bool Update()
     {
-        return --Time <= 0;
+        return --Time <= 0; //is this useful?
     }
 
     public void Cancel()

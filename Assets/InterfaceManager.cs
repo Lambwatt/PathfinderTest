@@ -4,7 +4,8 @@ using UnityEngine;
 
 public class InterfaceManager : MonoBehaviour
 {
-    PathAgent[] SelectedUnits;
+    PathAgent SelectedUnit;
+    Board Board;
 
     // Start is called before the first frame update
     void Start()
@@ -16,5 +17,16 @@ public class InterfaceManager : MonoBehaviour
     void Update()
     {
         //move all keyboard commands here
+        //while moving, walk along path otherwise wait
+        if (Input.GetMouseButtonDown(0))
+        {
+            Vector3 mouseInWorld = Board.GetMouseCoordinates();
+            SelectedUnit.JumpTo( Board.GetBoardCoordinates(mouseInWorld));
+        }
+        else if (Input.GetMouseButtonDown(1))
+        {
+            Vector3 mouseInWorld = Board.GetMouseCoordinates();
+            SelectedUnit.GetPath(Board.GetBoardCoordinates(mouseInWorld));
+        }
     }
 }

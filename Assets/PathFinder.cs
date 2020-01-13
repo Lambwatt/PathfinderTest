@@ -6,6 +6,8 @@ public class PathFinder : MonoBehaviour
 {
     public Board board;
 
+    public PositionScheduler Scheduler;
+
     public GameObject PathMarker;
     public GameObject BlockMarker;
 
@@ -38,56 +40,13 @@ public class PathFinder : MonoBehaviour
         PathMarks = new List<GameObject>();
 
         maxDistance = board.Dimensions.y * board.Dimensions.x;
+
+        Scheduler.Board = board;
     }
 
     // Update is called once per frame
     void Update()
     {
-        //if (Input.GetMouseButtonDown(0))
-        //{
-        //    Vector3 mouseInWorld = board.GetMouseCoordinates();
-        //    Location = board.GetBoardCoordinates(mouseInWorld);
-        //    transform.position = board.ConvertToWorldCoordinates(Location);
-        //}
-        //else if(Input.GetMouseButtonDown(1))
-        //{
-        //    clearPath();
-
-        //    Vector3 mouseInWorld = board.GetMouseCoordinates();
-        //    Destination = board.GetBoardCoordinates(mouseInWorld);
-
-        //    List<Vector2Int> spots = new List<Vector2Int>();
-
-        //    Stack<Vector2Int> tmp = new Stack<Vector2Int>();
-
-        //    tmp = AStarProper(Location, Destination);
-
-        //    //If successful, plot path, otherwise stop
-        //    if (tmp != null)
-        //    {
-        //        while (tmp.Count > 0)
-        //        {
-        //            spots.Add(tmp.Pop());
-        //        }
-
-        //        ////Create Path
-        //        //for (int i = 0; i < spots.Count; i++)
-        //        //{
-        //        //    PathMarks.Add(Instantiate(PathMarker, board.ConvertToWorldCoordinates(spots[i]) + new Vector3(0, 2, 0), Quaternion.identity));
-        //        //    if (i > 0)
-        //        //    {
-        //        //        PathMarks.Add(Instantiate(PathMarker, board.ConvertToWorldCoordinates((Vector2)spots[i - 1] + ((Vector2)spots[i] - (Vector2)spots[i - 1]) * .25f) + new Vector3(0, 2, 0), Quaternion.identity));
-        //        //        PathMarks.Add(Instantiate(PathMarker, board.ConvertToWorldCoordinates((Vector2)spots[i - 1] + ((Vector2)spots[i] - (Vector2)spots[i - 1]) * .5f) + new Vector3(0, 2, 0), Quaternion.identity));
-        //        //        PathMarks.Add(Instantiate(PathMarker, board.ConvertToWorldCoordinates((Vector2)spots[i - 1] + ((Vector2)spots[i] - (Vector2)spots[i - 1]) * .75f) + new Vector3(0, 2, 0), Quaternion.identity));
-        //        //    }
-        //        //}
-        //    }
-        //    else
-        //    {
-        //        Debug.Log("Could not find path");
-        //    }
-        //}
-
         //Move activation to interface
         if (Input.GetKeyDown(KeyCode.Space))
         {

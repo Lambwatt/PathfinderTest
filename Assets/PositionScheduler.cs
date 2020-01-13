@@ -5,6 +5,8 @@ using UnityEngine;
 //First assume units cannot change course
 public class PositionScheduler
 {
+    public Board Board;
+
     Dictionary<int, PositionAppointment>[] Obstructions;
 
     public PositionScheduler(int max)
@@ -12,9 +14,23 @@ public class PositionScheduler
         Obstructions = new Dictionary<int, PositionAppointment>[max];
     }
 
-    public void Cancel(int timeIndex, int position)
+    public void AddAppointment(Vector2Int location, int timeIndex, PositionAppointment appointment)
     {
-        Obstructions[timeIndex].Remove(position);
+        if(Obstructions[timeIndex] == null)
+        {
+            Obstructions[timeIndex] = new Dictionary<int, PositionAppointment>();
+        }
+
+        int key = ToKey(location);
+        if (!Obstructions[timeIndex].ContainsKey(key))
+        {
+            Obstructions[timeIndex].Add(key, appointment);
+        }
+    }
+
+    public void Cancel(int timeIndex, Vector2Int position)
+    {
+        Obstructions[timeIndex].Remove(ToKey(position));
     }
 
     public void Update()
@@ -43,13 +59,13 @@ public class PositionScheduler
         }
     }
 
-    public bool CheckAppointment(int timeIndex, int position)
+    public bool CheckAppointment(int timeIndex, Vector2Int position)
     {
         if (Obstructions[timeIndex] == null)
         {
             return false;
         }
-        else if(Obstructions[timeIndex].ContainsKey(position))
+        else if(Obstructions[timeIndex].ContainsKey(ToKey(position)))
         {
             return true;
         }
@@ -57,5 +73,10 @@ public class PositionScheduler
         {
             return false;
         }
+    }
+
+    int ToKey(Vector2Int position)
+    {
+        return position.x * Board.Dimensions.x + position.y;
     }
 }
