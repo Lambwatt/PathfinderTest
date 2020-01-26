@@ -120,6 +120,14 @@ public class PathAgent : MonoBehaviour
 
     void clearPath()
     {
+        if (path != null)
+        {
+            for (int i = 0; i < path.Count; i++)
+            {
+                pathFinder.Scheduler.Cancel(i, path[i]);
+            }
+        }
+
         for (int i = PathMarks.Count - 1; i >= 0; i--)
         {
             Destroy(PathMarks[i]);

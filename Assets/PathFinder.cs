@@ -78,9 +78,15 @@ public class PathFinder : MonoBehaviour
         if (tmp != null)
         {
             spots.Add(start);
+            Scheduler.AddAppointment(start, 0, new PositionAppointment(Scheduler, 0, start, false));
+            Vector2Int temp;
+            int i = 1;
             while (tmp.Count > 0)
             {
-                spots.Add(tmp.Pop());
+                temp = tmp.Pop();
+                Scheduler.AddAppointment(temp, i, new PositionAppointment(Scheduler, i, temp, !(tmp.Count > 0)));
+                i++;
+                spots.Add(temp);
             }
             //spots.Reverse();
 
@@ -107,6 +113,8 @@ public class PathFinder : MonoBehaviour
         SetScore(start, gScore, width, 0);
         SetScore(start, fScore, width, 0);
 
+        int currTime;
+
         while (openSet.Count > 0)
         {
             //current:= the node in openSet having the lowest fScore[] value
@@ -122,6 +130,7 @@ public class PathFinder : MonoBehaviour
             }
 
             openSet.Remove(current);
+            currTime = CountPath(cameFrom, current, start, width);
             foreach (Vector2Int n in neighbors)
             {
                 if(n.x < 0 || n.y < 0 || n.x >= board.Dimensions.x || n.y >= board.Dimensions.y)
@@ -130,7 +139,7 @@ public class PathFinder : MonoBehaviour
                 // d(current,neighbor) is the weight of the edge from current to neighbor
                 // tentative_gScore is the distance from start to the neighbor through current
                 float tentative_gScore = GetScore(current, gScore, width) + 1;
-                if (tentative_gScore < GetScore(n, gScore, width) && HeuristicFn(n, goal)<maxDistance)
+                if (tentative_gScore < GetScore(n, gScore, width) && HeuristicFn(n, goal, currTime)<maxDistance)
                 {
                     // This path to neighbor is better than any previous one. Record it!
                     int key = NodeToInt(n, width);
@@ -170,6 +179,18 @@ public class PathFinder : MonoBehaviour
         return path;
     }
 
+    int CountPath(Dictionary<int, Vector2Int> cameFrom, Vector2Int current, Vector2Int start, int width)
+    {
+        int i = 0;
+        while (cameFrom.Count > 0 && cameFrom[NodeToInt(current, width)] != start)
+        {
+            i++;
+            current = cameFrom[NodeToInt(current, width)];
+        }
+
+        return i + 1;
+    }
+
     Vector2Int GetNodeWithSmallestFScore(HashSet<Vector2Int> set, Dictionary<int, float> fScore, int width)
     {
         Vector2Int res = new Vector2Int(-1,-1);
@@ -202,9 +223,9 @@ public class PathFinder : MonoBehaviour
         return gScore[NodeToInt(node, width)] = value;
     }
 
-    public float HeuristicFn(Vector2Int node, Vector2Int destination)
+    public float HeuristicFn(Vector2Int node, Vector2Int destination, int t = 0)
     {
-        return Obstacles[node.x, node.y] ? maxDistance : Vector2.Distance(node, destination);
+        return Obstacles[node.x, node.y] || Scheduler.CheckAppointment(t+1,node) ? maxDistance : Vector2.Distance(node, destination);
     }
 
     public int NodeToInt(Vector2Int node, int width)
